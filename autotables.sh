@@ -11,16 +11,16 @@ handleDirection(){
 		read -p "(I)nput, (O)utput or (B)oth or (F)orward: " direction
 		direction=`echo $direction | tr '[:lower:]' '[:upper:]'`
 		if [ "$direction" == "I" -o "$direction" == "INPUT" ]; then
-			$direction="INPUT"
+			direction="INPUT"
 			break
 		elif [ "$direction" == "O" -o "$direction" == "OUTPUT" ]; then
-			$direction="OUTPUT"
+			direction="OUTPUT"
 			break
 		elif [ "$direction" == "B" -o "$direction" == "BOTH" ]; then
-			$direction="INPUT OUTPUT"
+			direction="INPUT OUTPUT"
 			break
 		elif [ "$direction" == "F" -o "$direction" == "FORWARD" ]; then
-			$direction="FORWARD"
+			direction="FORWARD"
 			break
 		else
 			echo "Invalid option...try again"
@@ -32,7 +32,6 @@ handleDirection(){
 
 #function to handle denying and allow
 handleDenyAllow(){
-	subOp=""
 	while [ true ]; do
 		echo "1. IP address/range"
 		echo "2. Service"
@@ -40,18 +39,28 @@ handleDenyAllow(){
 		echo "4. All"
 		echo "5. Back to main menu"
 		read -p "Option: " subOp
-		echo "separate multiple options with spaces (eg 22 80 443)"
 		if [ "$subOp" == "1" ]; then
+			echo "separate multiple options with spaces (eg 22 80 443)"
 			read -p "Enter IP address(es) or range(s): " answer
+			direction=$(handleDirection) #get the direction/chain
 			break
 		elif [ "$subOp" == "2" ]; then
+			echo "separate multiple options with spaces (eg 22 80 443)"
 			read -p "Enter service(s): " answer
+			direction=$(handleDirection) #get the direction/chain
 			break
 		elif [ "$subOp" == "3" ]; then
+			echo "separate multiple options with spaces (eg 22 80 443)"
 			read -p "Enter port(s): " answer
+			direction=$(handleDirection) #get the direction/chain
 			break
 		elif [ "$subOp" == "4" ]; then
-			echo "hey you picked All"
+			direction=$(handleDirection) #get the direction/chain
+			echo "directions: '$direction'"
+			for d in $direction; do #loop through directions in case input and output are both given
+				echo "d value: '$d'"
+				$path/iptables -A $d -j $1
+			done
 			break
 		elif [ "$subOp" == "5" ]; then
 			echo "back to main menu..."
@@ -59,19 +68,15 @@ handleDenyAllow(){
 		else
 			echo "Invalid option"
 		fi
-	done
-	
-	if [ $subOp -lt 4 ]; then
-		direction=$(handleDirection) #get the direction/chain
-	fi
+	done #while loop
 }
 
-while [ true ]; do
+while [ true ]; do #main while loop
 	option=1
 	if [ $option -ge 1 -o $option -le 8 ]; then
 		echo "1. List all rules"
-		echo "2. Deny (services, ports or IPs)"
-		echo "3. Allow (services, ports or IPs)"
+		echo "2. Drop (services, ports or IPs)"
+		echo "3. Accept (services, ports or IPs)"
 		echo "4. Save"
 		echo "5. Restore"
 		echo "6. AutoConfig"
@@ -88,9 +93,9 @@ while [ true ]; do
 		$path/iptables -L
 		echo
 	elif [ "$option" == "2" ]; then
-		handleDenyAllow
+		handleDenyAllow "DROP"
 	elif [ "$option" == "3" ]; then
-		handleDenyAllow
+		handleDenyAllow "ACCEPT"
 	elif [ "$option" == "4" ]; then
 		read -p "Enter file name to save to: " lastBackup
 		$path/iptables-save > $lastBackup
