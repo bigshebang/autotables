@@ -69,7 +69,6 @@ handleDenyAllow(){
 		fi
 	done #while loop
 	echo
-	
 }
 
 while [ true ]; do #main while loop
