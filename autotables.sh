@@ -32,6 +32,7 @@ handleDirection(){
 
 #function to handle denying and allow
 handleDenyAllow(){
+	echo
 	while [ true ]; do
 		echo "1. IP address/range"
 		echo "2. Service"
@@ -56,9 +57,7 @@ handleDenyAllow(){
 			break
 		elif [ "$subOp" == "4" ]; then
 			direction=$(handleDirection) #get the direction/chain
-			echo "directions: '$direction'"
 			for d in $direction; do #loop through directions in case input and output are both given
-				echo "d value: '$d'"
 				$path/iptables -A $d -j $1
 			done
 			break
@@ -69,6 +68,7 @@ handleDenyAllow(){
 			echo "Invalid option"
 		fi
 	done #while loop
+	echo
 }
 
 while [ true ]; do #main while loop
