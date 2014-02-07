@@ -38,6 +38,27 @@ handleDirection(){
 	echo "$direction" #return value of direction
 }
 
+handleProtocol(){
+	while [ true ]; do
+		read -p "(T)cp, (U)dp or (B)oth: " port
+		port=`echo $port | tr '[:lower:]' '[:upper:]'`
+		if [ "$port" == "T" -o "$port" == "TCP" ]; then
+			port="tcp"
+			break
+		elif [ "$port" == "U" -o "$port" == "UDP" ]; then
+			port="udp"
+			break
+		elif [ "$port" == "B" -o "$port" == "BOTH" ]; then
+			port="tcp udp"
+			break
+		else
+			echo "Invalid option...try again"
+		fi
+	done
+
+	echo "$port" #return which protocol they want
+}
+
 #function to handle denying and allow
 handleDenyAllow(){
 	echo
@@ -59,14 +80,32 @@ handleDenyAllow(){
 			done
 			break
 		elif [ "$subOp" == "2" ]; then
+			# echo "not yet implemented"
+			# break
 			echo "separate multiple options with spaces (eg ftp http ssh)"
 			read -p "Enter service(s): " services
 			direction=$(handleDirection) #get the direction/chain
+			for service in $services; do #loop through all IPs given
+				for d in $direction; do #loop through directions in case input and output are both given
+					protocols=$(handleProtocol)
+					for protocol in $protocols; do #loop through all protocols they gave
+						$path/iptables -A $d -p $protocol --dport $port -j $1
+					done
+				done
+			done
 			break
 		elif [ "$subOp" == "3" ]; then
-			echo "separate multiple options with spaces (eg 22 80 443)"
+			echo "separate multiple ports w/ spaces (eg 22 80) enter ranges w/ colon (eg 22:80)"
 			read -p "Enter port(s): " ports
 			direction=$(handleDirection) #get the direction/chain
+			for port in $ports; do #loop through all IPs given
+				for d in $direction; do #loop through directions in case input and output are both given
+					protocols=$(handleProtocol)
+					for protocol in $protocols; do #loop through all protocols they gave
+						$path/iptables -A $d -p $protocol --dport $port -j $1
+					done
+				done
+			done
 			break
 		elif [ "$subOp" == "4" ]; then
 			direction=$(handleDirection) #get the direction/chain
